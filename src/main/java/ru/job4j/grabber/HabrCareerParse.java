@@ -8,17 +8,18 @@ import org.jsoup.select.Elements;
 import ru.job4j.grabber.utils.HabrCareerDateTimeParser;
 
 import java.io.IOException;
+import java.util.StringJoiner;
 
 public class HabrCareerParse {
 
     private static final String SOURCE_LINK = "https://career.habr.com";
     public static final String PREFIX = "/vacancies?page=";
     public static final String SUFFIX = "&q=Java%20developer&type=all";
-    public static final int NUMBER_PAGES = 5;
+    public static final int NUMBER_PAGES = 1;
 
     public static void main(String[] args) throws IOException {
-
-        for (int pageNumber = 1; pageNumber < NUMBER_PAGES; pageNumber++) {
+        HabrCareerParse habrCareerParse = new HabrCareerParse();
+        for (int pageNumber = 1; pageNumber <= NUMBER_PAGES; pageNumber++) {
             System.out.println("Страница " + pageNumber);
             String fullLink = "%s%s%d%s".formatted(SOURCE_LINK, PREFIX, pageNumber, SUFFIX);
             Connection connection = Jsoup.connect(fullLink);
@@ -33,7 +34,28 @@ public class HabrCareerParse {
                 Element dateClass = dateElement.child(0);
                 String date = dateClass.attr("datetime");
                 System.out.printf("%s %s %s%n", vacancyName, link, new HabrCareerDateTimeParser().parse(date));
+                System.out.println("ОПИСАНИЕ ВАКАНСИИ");
+
+                try {
+                    System.out.println(habrCareerParse.retrieveDescription(link));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             });
         }
+    }
+
+    private String retrieveDescription(String link) throws IOException {
+        Connection connection = Jsoup.connect(link);
+        Document document = connection.get();
+        Elements rows = document.select(".vacancy-description__text");
+        StringJoiner joined = new StringJoiner("\n");
+        rows.forEach(row -> {
+            for (int i = 0; i < row.childNodeSize(); i++) {
+                String text = row.child(i).text();
+                joined.add(text);
+            }
+        });
+        return  joined.toString();
     }
 }
