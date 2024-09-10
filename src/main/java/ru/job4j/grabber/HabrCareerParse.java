@@ -20,7 +20,7 @@ public class HabrCareerParse implements Parse {
     public static final String SUFFIX = "&q=Java%20developer&type=all";
     public static final int NUMBER_PAGES = 1;
 
-    private final DateTimeParser dateTimeParser;
+    public final DateTimeParser dateTimeParser;
 
     private List<Post> posts = new ArrayList<>();
 
